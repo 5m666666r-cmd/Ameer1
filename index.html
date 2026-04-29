@@ -1,0 +1,277 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مكتبة جامعة وارث الأنبياء الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-blue: #0f172a;
+            --success: #22c55e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--dark-blue);
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            overflow-x: hidden;
+        }
+
+        /* الهيدر العلوي ثابت */
+        .header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 2px solid var(--gold);
+            z-index: 100;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .status-idle { background: #334155; color: #cbd5e1; }
+        .status-active { background: var(--success); color: white; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .main-stage {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* مربع اللوغو الثابت بالمنتصف */
+        .fixed-logo-box {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            overflow: hidden;
+        }
+
+        .fixed-logo-box img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .university-name {
+            font-size: 20px;
+            color: var(--gold);
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* سجل المهمات */
+        .mission-log {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        .mission-item { color: var(--success); margin-bottom: 4px; display: none; }
+
+        /* شبكة الأزرار */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 450px;
+        }
+        .book-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .book-btn:active { transform: scale(0.95); background: var(--gold); color: var(--dark-blue); }
+        .book-btn span { font-size: 18px; font-weight: 800; }
+
+        /* واجهة الأكشن (العداد) */
+        .action-box {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .status-msg { font-size: 22px; color: var(--gold); font-weight: 900; margin: 25px 0; min-height: 60px; }
+        
+        .perc-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 60px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 15px;
+            background: #1e293b;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            overflow: hidden;
+        }
+        .bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), #f59e0b);
+            transition: 0.1s linear;
+        }
+
+        .hide { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="robotStatus" class="status-badge status-idle">بانتظار الأوامر</div>
+        <div style="color: var(--gold); font-size: 14px; font-weight: bold;">روبوت تيم الصالحين</div>
+    </div>
+
+    <div class="main-stage">
+        
+        <div id="idleView" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="fixed-logo-box">
+                <img src="69391.jpg" onerror="this.src='https://uowa.edu.iq/wp-content/uploads/2022/02/Warith-Logo.png'" alt="Logo">
+            </div>
+            <h1 class="university-name">مكتبة جامعة وارث الأنبياء الذكية</h1>
+
+            <div class="mission-log">
+                <div style="color: #94a3b8; margin-bottom: 8px; font-weight: bold;">سجل العمليات المنجزة:</div>
+                <div id="m1" class="mission-item">✓ تم تسليم كتاب الطالب حسين</div>
+                <div id="m2" class="mission-item">✓ تم تسليم كتاب الطالبة نور</div>
+                <div id="m3" class="mission-item">✓ تم تسليم كتاب الطالب كميل</div>
+                <div id="m4" class="mission-item">✓ تم تسليم كتاب الطالب علي</div>
+            </div>
+
+            <div class="books-grid">
+                <div class="book-btn" onclick="startMove('حسين')"><span>حسين</span></div>
+                <div class="book-btn" onclick="startMove('نور')"><span>نور</span></div>
+                <div class="book-btn" onclick="startMove('كميل')"><span>كميل</span></div>
+                <div class="book-btn" onclick="startMove('علي')"><span>علي</span></div>
+            </div>
+        </div>
+
+        <div id="actionView" class="action-box">
+            <h2 id="mainStatusText" class="status-msg">جاري البحث عن الكتاب...</h2>
+            
+            <div class="perc-display" id="perc">0%</div>
+            
+            <div class="bar-container">
+                <div class="bar-fill" id="bar"></div>
+            </div>
+
+            <p id="subInfo" style="margin-top: 30px; color: #94a3b8;">جاري تحديد المسار الرقمي</p>
+        </div>
+
+    </div>
+
+    <script>
+        let missions = 0;
+
+        function startMove(targetName) {
+            document.getElementById('robotStatus').innerText = "قيد التنفيذ";
+            document.getElementById('robotStatus').className = "status-badge status-active";
+            document.getElementById('idleView').classList.add('hide');
+            document.getElementById('actionView').style.display = 'block';
+            
+            let p = 0;
+            const bar = document.getElementById('bar');
+            const perc = document.getElementById('perc');
+            const statusText = document.getElementById('mainStatusText');
+            const subInfo = document.getElementById('subInfo');
+
+            subInfo.innerText = "التوجه نحو موقع: " + targetName;
+
+            let timer = setInterval(() => {
+                if (p >= 100) {
+                    clearInterval(timer);
+                    statusText.innerText = "تم الوصول! يرجى استلام الكتاب";
+                    statusText.style.color = "#22c55e";
+                    
+                    setTimeout(() => {
+                        returnBack();
+                    }, 4000);
+                } else {
+                    p++;
+                    bar.style.width = p + "%";
+                    perc.innerText = p + "%";
+                }
+            }, 70); 
+        }
+
+        function returnBack() {
+            const statusText = document.getElementById('mainStatusText');
+            const bar = document.getElementById('bar');
+            const perc = document.getElementById('perc');
+            const subInfo = document.getElementById('subInfo');
+
+            statusText.innerText = "جاري العودة للموقع الرئيسي";
+            statusText.style.color = "#d4af37";
+            subInfo.innerText = "إعادة ضبط الإحداثيات...";
+
+            let p = 100;
+            let returnTimer = setInterval(() => {
+                if (p <= 0) {
+                    clearInterval(returnTimer);
+                    resetUI();
+                } else {
+                    p -= 2; 
+                    bar.style.width = p + "%";
+                    perc.innerText = p + "%";
+                }
+            }, 40);
+        }
+
+        function resetUI() {
+            missions++;
+            if(missions <= 4) document.getElementById('m' + missions).style.display = 'block';
+
+            document.getElementById('robotStatus').innerText = "بانتظار الأوامر";
+            document.getElementById('robotStatus').className = "status-badge status-idle";
+            document.getElementById('idleView').classList.remove('hide');
+            document.getElementById('actionView').style.display = 'none';
+            document.getElementById('mainStatusText').innerText = "جاري البحث عن الكتاب...";
+            document.getElementById('mainStatusText').style.color = "#d4af37";
+        }
+    </script>
+</body>
+</html>
+
+```
