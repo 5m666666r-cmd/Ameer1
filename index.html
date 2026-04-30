@@ -1,0 +1,288 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روبوت مكتبة الوارث - أمير</title>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --gold: #c6a052;
+            --gold-light: #edcf8e;
+            --accent: #3b82f6;
+            --grid-line: rgba(255, 255, 255, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            padding: 10px;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 500px; margin: 0 auto 10px;
+            padding: 10px 15px; background: var(--card-glass);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .idle { background: #1e293b; color: #94a3b8; }
+        .active { background: var(--accent); color: white; }
+
+        .header { text-align: center; margin-bottom: 10px; }
+        
+        .logo { 
+            width: 110px; height: 110px; 
+            background: #1a1a1a; border-radius: 50%; 
+            margin: 0 auto 10px; border: 3px solid var(--gold); 
+            display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        .logo img { 
+            width: 100%; height: 100%; 
+            object-fit: cover;
+        }
+
+        .names-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 auto 15px;
+            max-width: 320px;
+            text-align: center;
+        }
+        .names-container p {
+            font-size: 14px;
+            margin: 2px 0;
+            color: white;
+            font-weight: 500;
+            display: inline-block;
+            width: 45%;
+        }
+
+        .container { max-width: 500px; margin: 0 auto; height: 40vh; overflow-y: auto; }
+        .category { background: var(--card-glass); border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .cat-btn { width: 100%; padding: 15px; background: none; border: none; color: white; text-align: right; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        .book-list { display: none; padding: 5px 15px 15px; }
+        .book-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 6px; cursor: pointer; font-size: 14px; transition: 0.3s; }
+        .book-item:active { background: var(--gold); color: black; }
+
+        #mapUI {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 2000; flex-direction: column; padding: 15px;
+        }
+
+        .map-canvas {
+            flex-grow: 1; background: #05070a; border-radius: 20px; border: 1px solid #333;
+            position: relative; overflow: hidden;
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        .robot { width: 22px; height: 22px; background: var(--accent); border-radius: 50%; position: absolute; z-index: 10; box-shadow: 0 0 15px var(--accent); }
+        .path-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .info-panel { background: var(--card-glass); padding: 20px; border-radius: 25px; margin-top: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .status-text { font-size: 24px; color: var(--gold-light); font-weight: bold; min-height: 35px; }
+        .btn-stop { margin-top: 12px; padding: 12px; width: 100%; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="status-bar">
+    <div id="mainBadge" class="badge idle">وضع الخمول</div>
+    <div style="font-size: 13px; color: var(--gold)">مكتمل: <span id="mCount">0</span></div>
+</div>
+
+<div id="mainUI">
+    <div class="header">
+        <div class="logo">
+            <!-- يا أمير جربتلك كل الاحتمالات: ameer1.jpg أو 69509.jpg -->
+            <img id="profileImg" src="ameer1.jpg" alt="Ameer">
+        </div>
+        <h3 style="color: var(--gold-light); margin-bottom: 5px;">روبوت مكتبة الوارث</h3>
+    </div>
+
+    <div class="names-container">
+        <p>حسين حيدر</p>
+        <p>علي حسن</p>
+        <p>كميل لؤي</p>
+        <p>نور بسام</p>
+    </div>
+
+    <div class="container">
+        <!-- الأقسام من كتاب رقم 1 لغاية كتاب رقم 5 -->
+        <div class="category">
+            <button class="cat-btn" onclick="toggle('list1')">💊 قسم الصيدلة <span>⊕</span></button>
+            <div id="list1" class="book-list">
+                <div class="book-item" onclick="startSearch(1)">كتاب رقم 1</div>
+                <div class="book-item" onclick="startSearch(2)">كتاب رقم 2</div>
+                <div class="book-item" onclick="startSearch(3)">كتاب رقم 3</div>
+                <div class="book-item" onclick="startSearch(4)">كتاب رقم 4</div>
+                <div class="book-item" onclick="startSearch(5)">كتاب رقم 5</div>
+            </div>
+        </div>
+        <div class="category">
+            <button class="cat-btn" onclick="toggle('list2')">🩺 قسم الطب <span>⊕</span></button>
+            <div id="list2" class="book-list">
+                <div class="book-item" onclick="startSearch(1)">كتاب رقم 1</div>
+                <div class="book-item" onclick="startSearch(2)">كتاب رقم 2</div>
+                <div class="book-item" onclick="startSearch(3)">كتاب رقم 3</div>
+                <div class="book-item" onclick="startSearch(4)">كتاب رقم 4</div>
+                <div class="book-item" onclick="startSearch(5)">كتاب رقم 5</div>
+            </div>
+        </div>
+        <div class="category">
+            <button class="cat-btn" onclick="toggle('list3')">⚙️ قسم الهندسة <span>⊕</span></button>
+            <div id="list3" class="book-list">
+                <div class="book-item" onclick="startSearch(1)">كتاب رقم 1</div>
+                <div class="book-item" onclick="startSearch(2)">كتاب رقم 2</div>
+                <div class="book-item" onclick="startSearch(3)">كتاب رقم 3</div>
+                <div class="book-item" onclick="startSearch(4)">كتاب رقم 4</div>
+                <div class="book-item" onclick="startSearch(5)">كتاب رقم 5</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="mapUI">
+    <div class="map-canvas" id="canvasArea">
+        <svg class="path-svg"><polyline id="trail" points="" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linejoin="round" opacity="0.6" /></svg>
+        <div id="robotObj" class="robot"></div>
+        <div id="targetObj" style="position:absolute; display:none; font-size:26px; z-index:5">📚</div>
+    </div>
+    <div class="info-panel">
+        <div style="font-size: 14px; color: #888; margin-bottom: 5px;">المسافة: <span id="distVal" style="color:var(--accent)">0.0</span> م</div>
+        <div id="statusLabel" class="status-text">جاري البحث...</div>
+        <button class="btn-stop" onclick="resetToHome()">إلغاء العملية</button>
+    </div>
+</div>
+
+<script>
+    // وظيفة ذكية لتغيير الصورة إذا لم يجد الاسم الأول
+    const imgEl = document.getElementById('profileImg');
+    imgEl.onerror = function() {
+        if (this.src.includes('ameer1.jpg')) {
+            this.src = '69509.jpg'; // المحاولة الثانية بآخر اسم رفعته
+        } else if (this.src.includes('69509.jpg')) {
+            this.src = 'https://uowa.edu.iq/wp-content/uploads/2022/02/Warith-Logo.png'; // المحاولة الأخيرة لوغو الجامعة
+        }
+    };
+
+    let missions = parseInt(localStorage.getItem('ameer_missions_count')) || 0;
+    document.getElementById('mCount').innerText = missions;
+
+    function toggle(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function resetToHome() { location.reload(); }
+
+    function startSearch(index) {
+        document.getElementById('mainUI').style.display = 'none';
+        document.getElementById('mapUI').style.display = 'flex';
+        document.getElementById('mainBadge').className = 'badge active';
+        document.getElementById('mainBadge').innerText = 'بحث مستمر';
+        
+        const robot = document.getElementById('robotObj');
+        const trail = document.getElementById('trail');
+        const status = document.getElementById('statusLabel');
+        const target = document.getElementById('targetObj');
+        const canvas = document.getElementById('canvasArea');
+        const dVal = document.getElementById('distVal');
+
+        let startX = canvas.clientWidth - 40;
+        let startY = canvas.clientHeight - 40;
+        let cornerY = startY - 220;
+        let targetX = startX - (index * 50);
+        let targetY = cornerY;
+
+        target.style.left = targetX + "px";
+        target.style.top = targetY + "px";
+        target.style.display = 'block';
+
+        let x = startX; let y = startY;
+        let currentDist = 0.0;
+        let points = `${x},${y} `;
+        
+        status.innerText = "جاري البحث...";
+
+        let moveForward = setInterval(() => {
+            if (y > cornerY) {
+                y -= 2;
+                currentDist += 0.05;
+                updateUI();
+            } else {
+                clearInterval(moveForward);
+                let moveSide = setInterval(() => {
+                    if (x > targetX) {
+                        x -= 2;
+                        currentDist += 0.05;
+                        updateUI();
+                    } else {
+                        clearInterval(moveSide);
+                        // الكلمة المطلوبة
+                        status.innerText = "لكيته";
+                        
+                        // انتظار 3 ثواني
+                        setTimeout(() => {
+                            status.innerText = "راجع لمكاني";
+                            returnPath();
+                        }, 3000);
+                    }
+                }, 15);
+            }
+        }, 15);
+
+        function returnPath() {
+            let backSide = setInterval(() => {
+                if (x < startX) {
+                    x += 2;
+                    currentDist += 0.05;
+                    updateUI();
+                } else {
+                    clearInterval(backSide);
+                    let backForward = setInterval(() => {
+                        if (y < startY) {
+                            y += 2;
+                            currentDist += 0.05;
+                            updateUI();
+                        } else {
+                            clearInterval(backForward);
+                            status.innerText = "وصلت";
+                            missions++;
+                            localStorage.setItem('ameer_missions_count', missions);
+                            document.getElementById('mCount').innerText = missions;
+                            setTimeout(() => {
+                                document.getElementById('mapUI').style.display = 'none';
+                                document.getElementById('mainUI').style.display = 'block';
+                                document.getElementById('mainBadge').className = 'badge idle';
+                                document.getElementById('mainBadge').innerText = 'وضع الخمول';
+                            }, 1500);
+                        }
+                    }, 15);
+                }
+            }, 15);
+        }
+
+        function updateUI() {
+            robot.style.left = x + "px";
+            robot.style.top = y + "px";
+            points += `${x},${y} `;
+            trail.setAttribute("points", points);
+            dVal.innerText = currentDist.toFixed(1);
+        }
+    }
+</script>
+</body>
+</html>
+
+```
